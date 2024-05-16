@@ -6,7 +6,7 @@ import secrets
 
 
 import redis
-from uuid import uuid4
+import uuid
 from typing import Union, Callable, Optional
 from functools import wraps
 
