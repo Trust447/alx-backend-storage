@@ -1,16 +1,17 @@
 #!/usr/bin/env python
-"""module that implements redis"""
-
-import redis
-import uuid
-from typing import Union, Callable, Optional
-"""
+"""module that implements redis
 import string
 import secrets
 """
 
 
-def count_calls(method: callable) -> callable:
+import redis
+from uuid import uuid4
+from typing import Union, Callable, Optional
+from functools import wraps
+
+
+def count_calls(method: Callable) -> Callable:
     """returns a Callable"""
     key = method.__qualname__
 
@@ -19,6 +20,7 @@ def count_calls(method: callable) -> callable:
         """wrapper for decorated function"""
         self._redis.incr(key)
         return method(self, *args, **kwargs)
+
     return wrapper
 
 
@@ -32,6 +34,7 @@ def call_history(method: Callable) -> Callable:
         output = str(method(self, *args, **kwargs))
         self._redis.rpush(method.__qualname__ + ":outputs", output)
         return output
+
     return wrapper
 
 
@@ -69,14 +72,14 @@ def replay(fn: Callable):
 
 
 class Cache:
-    """Cache class for interacting with Redis"""
+    """Create a Cache class"""
 
     def __init__(self):
-        """Constructor to initialize the Redis connection"""
+        """store an instance of the Redis client"""
         self._redis = redis.Redis()
         self._redis.flushdb()
 
-    @count_calls  
+    @count_calls
     @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """Store data in the cache and return the stored key
@@ -87,14 +90,14 @@ class Cache:
         return key
 
     def get(self, key: str,
-            fn: optional[callable] = None) -> Union[str, bytes, int, float]:
+            fn: Optional[callable] = None) -> Union[str, bytes, int, float]:
         """convert the data back to the desired format"""
-        val = self._redis.get(key)
+        value = self._redis.get(key)
         if fn:
-            val = fn(val)
-        return val
-    
-     def get_str(self, key: str) -> str:
+            value = fn(value)
+        return value
+
+    def get_str(self, key: str) -> str:
         """automatically parametrize Cache.get with the correct
         conversion function"""
         value = self._redis.get(key)
