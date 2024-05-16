@@ -10,6 +10,17 @@ import secrets
 """
 
 
+def count_calls(method: callable) -> callable:
+    """returns a Callable"""
+    key = method.__qualname__
+
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        """wrapper for decorated function"""
+        self._redis.incr(key)
+        return method(self, *args, **kwargs)
+    return wrapper
+
 class Cache:
     """Cache class for interacting with Redis"""
 
