@@ -20,7 +20,7 @@ def url_access_count(method):
         cached_value = r.get(cache_key)
         if cached_value:
             return cached_value.decode("utf-8")
- 
+
         html_content = method(url)
         r.incr(count_key)
         r.set(cache_key, html_content, ex=10)
